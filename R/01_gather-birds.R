@@ -1,6 +1,10 @@
 library(tidyverse)
 library(rvest)
 library(httr)
+library(curl)
+library(pbapply)
+
+pboptions(nout = 1000)
 
 url <- "https://en.wikipedia.org/wiki/List_of_birds_of_Great_Britain"
 
@@ -34,14 +38,7 @@ scrape_details <- function(url) {
 }
 
 
-all_bird_details <- map_dfr(all_birds$xeno_canto_url, scrape_details)
+all_bird_details <- pblapply(all_birds$xeno_canto_url, scrape_details) %>% 
+  bind_rows()
 
-all_bird_details <- pblapply(all_birds$xeno_canto_url, scrape_details) %>% bind_rows()
 
-%>%
-  mutate(mp3_url = paste0("https:", str_extract(url, "//www.xeno-canto.org/sounds/uploaded/[A-Za-z]+/"), filename))
-
-download.file(all_bird_details$mp3_url[1], "test.mp3")
-
-all_bird_details <- all_bird_details %>%
-  mutate(mp3_url = paste0("https:", str_extract(url, "//www.xeno-canto.org/sounds/uploaded/[A-Za-z]+/"), filename))
