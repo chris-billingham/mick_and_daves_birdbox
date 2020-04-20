@@ -8,7 +8,8 @@ chunk_and_save <- function(filename, dir) {
   # create trackname
   track_name <- gsub("mp3/", "", filename)
   
-  # read in the mp3
+  # read in the mp3 if it exists
+  if(!file_exists(filename)) {return()}
   r <- readMP3(filename)
   
   # convert to mono from stereo, averaging both channels ----
@@ -16,6 +17,7 @@ chunk_and_save <- function(filename, dir) {
   
   # get the duration for the entire file, we'll need this for later
   duration_total <- round(length(mono_r@left) / mono_r@samp.rate, 2)
+  if(duration_total == 0) {return()}
   print(filename)
   
   pb <- progress_bar$new(
@@ -27,7 +29,7 @@ chunk_and_save <- function(filename, dir) {
   for (i in 0:(floor(duration_total)-1)) {
     chunk <- extractWave(mono_r, from = i, to = i+1, xunit = "time")
     chunk_name <- paste0("plot/", dir, "/", track_name, str_pad(as.character(i), 4, side = "left", pad = "0"), ".png")
-    save_spectrogram(chunk, chunk_name)
+    if(!file_exists(chunk_name)) {save_spectrogram(chunk, chunk_name)}
     pb$tick()
   }
   
