@@ -3,6 +3,7 @@ library(rvest)
 library(httr)
 library(curl)
 library(pbapply)
+library(lubridate)
 
 pboptions(nout = 1000)
 
@@ -25,12 +26,14 @@ scrape_details <- function(url) {
   cont <- content(req)
   
   bird_df <- tibble(
+    name = cont$recordings %>% map_chr("en"),
+    latin = paste0(cont$recordings %>% map_chr("gen"), " ", cont$recordings %>% map_chr("sp")),
     type = cont$recordings %>% map_chr("type"),
     url = cont$recordings %>% map_chr(list("sono", "small")),
     file = cont$recordings %>% map_chr("file"),
     filename = cont$recordings %>% map_chr("file-name"),
     quality = cont$recordings %>% map_chr("q"),
-    name = cont$recordings %>% map_chr("en"),
+    length_s = cont$recordings %>% map_chr("length") %>% ms() %>% as.numeric("seconds"),
     bird_seen = cont$recordings %>% map_chr("bird-seen")
   )
   
